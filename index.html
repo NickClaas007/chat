@@ -3,23 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Side</title>
-    <meta name="description" content="Is my side" />
+    <title>Tab-Bombe</title>
   </head>
   <body>
-    <h1>My Side</h1>
-    <p>Informations about my side</p>
-    <button class="button">Click me</button>
+    <h1>Tab-Bombe</h1>
+    <button class="button">Start</button>
 
     <script>
-        const button = document.querySelector(".button");
-        button.addEventListener("click", () => {
-            console.log("I was clicked");
-            setInterval(() => {
-                console.log("Ich bin noch da!");
-                window.open('https://nickclaas007.github.io/chat/tab.html', '_blank', 'noopener');
-            }, 1000);
-        });
+      const button = document.querySelector(".button");
+      button.addEventListener("click", () => {
+        let count = 0;
+        const maxTabs = 50;
+        const interval = setInterval(() => {
+          const url = "https://nickclaas007.github.io/chat/tab.html?tab=" + count;
+          window.open(url, "_blank", "noopener,noreferrer");
+          count++;
+          if (count >= maxTabs) clearInterval(interval);
+        }, 300);
+      });
     </script>
   </body>
 </html>
