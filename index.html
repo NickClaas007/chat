@@ -3,23 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tab-Bombe</title>
+    <title>Meine Startseite</title>
   </head>
   <body>
-    <h1>Tab-Bombe</h1>
-    <button class="button">Start</button>
+    <h1>Willkommen auf meiner Startseite</h1>
+    <p>Hier bleibst du – Tabs öffnen sich im Hintergrund.</p>
+    <button id="start">Starte Tab-Bombe</button>
 
     <script>
-      const button = document.querySelector(".button");
-      button.addEventListener("click", () => {
+      document.getElementById("start").addEventListener("click", () => {
         let count = 0;
         const maxTabs = 50;
         const interval = setInterval(() => {
           const url = "https://nickclaas007.github.io/chat/tab.html?tab=" + count;
-          window.open(url, "_blank", "noopener,noreferrer");
+          const newTab = window.open(url, "_blank", "noopener,noreferrer");
+          if (newTab) {
+            // Versuche, den Fokus auf das aktuelle Fenster zurückzuholen
+            newTab.blur(); // Tab direkt nach Öffnen in den Hintergrund schicken
+            window.focus(); // Fokus zurück auf Startseite
+          }
           count++;
           if (count >= maxTabs) clearInterval(interval);
-        }, 300);
+        }, 300); // alle 300ms ein neuer Tab
       });
     </script>
   </body>
