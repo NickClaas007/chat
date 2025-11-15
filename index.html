@@ -1,85 +1,25 @@
 <!DOCTYPE html>
 <html lang="de">
-<head>
-<meta charset="UTF-8" />
-<title>Chatforum online</title>
-<style>
-  body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; background: #f9f9f9; }
-  h2 { text-align: center; }
-  #chat { border: 1px solid #ccc; background: white; height: 300px; padding: 10px; overflow-y: auto; margin-bottom: 15px; }
-  .nachricht { margin-bottom: 10px; }
-  .nutzer { font-weight: bold; color: #2a7ae2; }
-  form { display: flex; flex-direction: column; }
-  input, textarea { padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; resize: none; }
-  button { padding: 10px; background: #2a7ae2; color: white; border: none; border-radius: 4px; cursor: pointer; }
-  button:hover { background: #1a5ec8; }
-</style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Side</title>
+    <meta name="description" content="Is my side" />
+  </head>
+  <body>
+    <h1>My Side</h1>
+    <p>Informations about my side</p>
+    <button class="button">Click me</button>
 
-<h2>Chatforum online</h2>
-
-<div id="chat"></div>
-
-<form id="chatForm">
-  <input type="text" id="nutzer" placeholder="Dein Name" required />
-  <textarea id="nachricht" placeholder="Deine Nachricht" rows="3" required></textarea>
-  <button type="submit">Senden</button>
-</form>
-
-<script>
-  const chatDiv = document.getElementById('chat');
-  const form = document.getElementById('chatForm');
-
-  const BACKEND_URL = 'https://dein-backend-url.com'; // Hier URL zu deinem online Backend eintragen
-
-  async function ladeNachrichten() {
-    try {
-      const res = await fetch(`${BACKEND_URL}/nachrichten`);
-      if (!res.ok) throw new Error('Fehler beim Laden der Nachrichten');
-      const daten = await res.json();
-      zeigeNachrichten(daten);
-    } catch (e) {
-      chatDiv.innerHTML = '<i>Fehler beim Laden der Nachrichten</i>';
-      console.error(e);
-    }
-  }
-
-  function zeigeNachrichten(nachrichten) {
-    chatDiv.innerHTML = '';
-    nachrichten.forEach(({nutzer, nachricht}) => {
-      const div = document.createElement('div');
-      div.classList.add('nachricht');
-      div.innerHTML = `<span class="nutzer">${nutzer}:</span> ${nachricht}`;
-      chatDiv.appendChild(div);
-    });
-    chatDiv.scrollTop = chatDiv.scrollHeight;
-  }
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const nutzer = form.nutzer.value.trim();
-    const nachricht = form.nachricht.value.trim();
-    if (!nutzer || !nachricht) return;
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/nachricht`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nutzer, nachricht }),
-      });
-      if (!res.ok) throw new Error('Fehler beim Senden');
-      await ladeNachrichten();
-      form.reset();
-      form.nutzer.focus();
-    } catch (e) {
-      alert('Fehler beim Senden der Nachricht');
-      console.error(e);
-    }
-  });
-
-  ladeNachrichten();
-</script>
-
-</body>
+    <script>
+        const button = document.querySelector(".button");
+        button.addEventListener("click", () => {
+            console.log("I was clicked");
+            setInterval(() => {
+                console.log("Ich bin noch da!");
+                window.open('https://github.com/NickClaas007/chat/edit/main/tab.html', '_blank', 'noopener');
+            }, 1000);
+        });
+    </script>
+  </body>
 </html>
