@@ -1,15 +1,21 @@
-
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>Test Insert</title>
+  <title>Chat Insert</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <h1>Testwert senden</h1>
-  <button id="testBtn">Test senden</button>
+  <h1>Nachricht speichern</h1>
+
+  <form id="chatForm">
+    <label>
+      Nachricht:
+      <input type="text" id="messageInput" required />
+    </label>
+    <button type="submit">Senden</button>
+  </form>
+
   <div id="status">Bereit.</div>
 
   <script>
@@ -19,29 +25,28 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNub2duY3p6aWl0Znp2bnpjZG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NjA5NzQsImV4cCI6MjA3OTMzNjk3NH0.RCbo1DPG7sHTeKoos3YXkN6-7E7C-irTJIK1eAKeTNI"; // <- hier deinen anon key einsetzen
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    const form = document.getElementById("chatForm");
     const statusEl = document.getElementById("status");
-    const testBtn = document.getElementById("testBtn");
 
-    testBtn.addEventListener("click", async () => {
-      // Fester Testwert
-      const payload = {
-        user_id: "testuser",
-        latitude: 48.12345,
-        longitude: 11.54321,
-        timestamp: new Date().toISOString()
-      };
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const message = document.getElementById("messageInput").value;
+
+      const payload = { message: message };
 
       try {
-        const { error } = await supabase.from("locations").insert(payload);
+        const { error } = await supabase.from("chat").insert(payload);
         if (error) {
           console.error(error);
           statusEl.textContent = "Fehler: " + error.message;
         } else {
-          statusEl.textContent = "✅ Testwert gespeichert!";
+          statusEl.textContent = "Nachricht gespeichert!";
+          form.reset();
         }
       } catch (e) {
         console.error(e);
-        statusEl.textContent = "❌ Unerwarteter Fehler.";
+        statusEl.textContent = "Unerwarteter Fehler.";
       }
     });
   </script>
