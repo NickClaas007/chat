@@ -2,13 +2,21 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>Chat Insert Test</title>
+  <title>Chat Insert Individuell</title>
   <!-- Supabase Bibliothek laden -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <h1>Chat Test</h1>
-  <button id="testBtn">Test senden</button>
+  <h1>Chat Nachricht speichern</h1>
+
+  <form id="chatForm">
+    <label>
+      Nachricht:
+      <input type="text" id="messageInput" required />
+    </label>
+    <button type="submit">Senden</button>
+  </form>
+
   <div id="status">Bereit.</div>
 
   <script>
@@ -16,29 +24,34 @@
     const SUPABASE_URL = "https://cnognczziitfzvnzcdmv.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNub2duY3p6aWl0Znp2bnpjZG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NjA5NzQsImV4cCI6MjA3OTMzNjk3NH0.RCbo1DPG7sHTeKoos3YXkN6-7E7C-irTJIK1eAKeTNI"; // <- dein anon key
 
-    // Wichtig: nicht "supabase" überschreiben!
+    // Client erstellen (nicht "supabase" überschreiben!)
     const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    const form = document.getElementById("chatForm");
     const statusEl = document.getElementById("status");
-    const testBtn = document.getElementById("testBtn");
 
-    testBtn.addEventListener("click", async () => {
-      // Fester Testwert
-      const payload = { message: "Hallo Welt!" };
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const message = document.getElementById("messageInput").value;
+
+      const payload = { message: message };
 
       try {
         const { error } = await client.from("chat").insert(payload);
         if (error) {
           console.error(error);
-          statusEl.textContent = "Fehler: " + error.message;
+          statusEl.textContent = "❌ Fehler: " + error.message;
         } else {
-          statusEl.textContent = "Nachricht gespeichert!";
+          statusEl.textContent = "✅ Nachricht gespeichert!";
+          form.reset();
         }
       } catch (e) {
         console.error(e);
-        statusEl.textContent = "Unerwarteter Fehler.";
+        statusEl.textContent = "❌ Unerwarteter Fehler.";
       }
     });
   </script>
 </body>
 </html>
+
