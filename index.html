@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Standort teilen</title>
+</head>
+<body>
+  <button onclick="getLocation()">Standort anzeigen</button>
+  <p id="output"></p>
+
+  <script>
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          document.getElementById("output").innerHTML =
+            "Breite: " + position.coords.latitude +
+            "<br>Länge: " + position.coords.longitude;
+        });
+      } else {
+        document.getElementById("output").innerHTML =
+          "Geolocation wird nicht unterstützt.";
+      }
+    }
+  </script>
+</body>
+</html>
