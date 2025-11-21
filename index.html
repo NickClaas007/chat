@@ -2,39 +2,30 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Standort Sender</title>
-  <!-- Supabase SDK -->
+  <title>Standort Freigabe & Senden</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { font-family: Arial, sans-serif; margin: 24px; }
-    button { padding: 10px 14px; margin-right: 10px; }
-    .status { margin-top: 16px; color: #444; }
-    .warn { color: #b33; }
-    .ok { color: #2b7; }
-    code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; }
+    .status { margin-top: 16px; font-weight: bold; }
+    .ok { color: green; }
+    .warn { color: red; }
   </style>
 </head>
 <body>
-  <h1>Standort senden</h1>
-  <p>Diese Seite übermittelt deinen Standort kontinuierlich an Supabase. Es wird nichts angezeigt.</p>
+  <h1>Standort Freigabe & Senden</h1>
+  <p>Diese Seite fragt sofort nach Standortfreigabe und sendet die Daten an Supabase.</p>
 
-  <div>
-    <button id="startBtn">Senden starten</button>
-    <button id="stopBtn" disabled>Senden stoppen</button>
-  </div>
-
-  <div class="status" id="status">Bereit.</div>
+  <div class="status" id="status">Prüfe Standortfreigabe…</div>
 
   <script>
     // === Konfiguration: Supabase URL & anon Key ===
     const SUPABASE_URL = "https://cnognczziitfzvnzcdmv.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNub2duY3p6aWl0Znp2bnpjZG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NjA5NzQsImV4cCI6MjA3OTMzNjk3NH0.RCbo1DPG7sHTeKoos3YXkN6-7E7C-irTJIK1eAKeTNI"; // <- hier deinen anon key einsetzen
-
-    // Supabase Client initialisieren
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Nutzer-ID (anonym) erzeugen und im Browser speichern
+    const statusEl = document.getElementById("status");
+
+    // Nutzer-ID anonym erzeugen
     function getOrCreateUserId() {
       const key = "standort_sender_user_id";
       let id = localStorage.getItem(key);
@@ -46,102 +37,53 @@
     }
     const USER_ID = getOrCreateUserId();
 
-    // Tracking-Status
-    let watchId = null;
-    let lastSentAt = 0;
-    const MIN_SEND_INTERVAL_MS = 5000; // alle 5 Sekunden senden
+    // Standort sofort abfragen
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          statusEl.innerHTML = '<span class="ok">✅ Standortfreigabe erlaubt!</span><br>' +
+            'Lat: ' + pos.coords.latitude.toFixed(6) +
+            ', Lon: ' + pos.coords.longitude.toFixed(6);
 
-    const startBtn = document.getElementById("startBtn");
-    const stopBtn  = document.getElementById("stopBtn");
-    const statusEl = document.getElementById("status");
+          // Daten an Supabase senden
+          const payload = {
+            user_id: USER_ID,
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            accuracy: pos.coords.accuracy,
+            heading: pos.coords.heading,
+            speed: pos.coords.speed,
+            timestamp: new Date().toISOString()
+          };
 
-    startBtn.addEventListener("click", startTracking);
-    stopBtn.addEventListener("click", stopTracking);
-
-    // Tracking starten
-    function startTracking() {
-      if (!("geolocation" in navigator)) {
-        statusEl.innerHTML = '<span class="warn">Geolocation wird nicht unterstützt.</span>';
-        return;
-      }
-
-      const options = {
-        enableHighAccuracy: true,
-        maximumAge: 2000,
-        timeout: 10000
-      };
-
-      watchId = navigator.geolocation.watchPosition(onPosition, onPositionError, options);
-      startBtn.disabled = true;
-      stopBtn.disabled = false;
-      statusEl.innerHTML = '<span class="ok">Senden gestartet.</span> Deine ID: <code>' + USER_ID + '</code>';
-    }
-
-    // Tracking stoppen
-    function stopTracking() {
-      if (watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-      }
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
-      statusEl.textContent = "Senden gestoppt.";
-    }
-
-    // Standort senden
-    async function onPosition(position) {
-      const now = Date.now();
-      if (now - lastSentAt < MIN_SEND_INTERVAL_MS) return;
-      lastSentAt = now;
-
-      const coords = position.coords;
-      const payload = {
-        user_id: USER_ID,
-        latitude: coords.latitude,
-        longitude: coords.longitude,
-        accuracy: coords.accuracy,
-        heading: coords.heading,
-        speed: coords.speed,
-        timestamp: new Date().toISOString()
-      };
-
-      try {
-        const { error } = await supabase.from("locations").insert(payload);
-        if (error) {
-          console.error("Fehler beim Senden:", error);
-          statusEl.innerHTML = '<span class="warn">Fehler beim Senden:</span> ' + error.message;
-        } else {
-          statusEl.textContent = "Gesendet: " +
-            payload.latitude.toFixed(6) + ", " +
-            payload.longitude.toFixed(6);
+          try {
+            const { error } = await supabase.from("locations").insert(payload);
+            if (error) {
+              console.error(error);
+              statusEl.innerHTML += "<br><span class='warn'>Fehler beim Senden: " + error.message + "</span>";
+            } else {
+              statusEl.innerHTML += "<br><span class='ok'>Daten erfolgreich gespeichert!</span>";
+            }
+          } catch (e) {
+            console.error(e);
+            statusEl.innerHTML += "<br><span class='warn'>Unerwarteter Fehler beim Senden.</span>";
+          }
+        },
+        (err) => {
+          let msg = "❌ Standortfreigabe verweigert oder Fehler.";
+          if (err.code === err.PERMISSION_DENIED) {
+            msg = "❌ Standortfreigabe verweigert.";
+          } else if (err.code === err.POSITION_UNAVAILABLE) {
+            msg = "⚠️ Standort nicht verfügbar.";
+          } else if (err.code === err.TIMEOUT) {
+            msg = "⏱️ Zeitüberschreitung bei Standortabfrage.";
+          }
+          statusEl.innerHTML = '<span class="warn">' + msg + '</span>';
         }
-      } catch (e) {
-        console.error(e);
-        statusEl.innerHTML = '<span class="warn">Unerwarteter Fehler beim Senden.</span>';
-      }
-    }
-
-    // Fehler bei Standortabfrage
-    function onPositionError(err) {
-      let msg = "Fehler bei der Standortabfrage.";
-      switch (err.code) {
-        case err.PERMISSION_DENIED:
-          msg = "Zugriff verweigert: Bitte Standortfreigabe erlauben.";
-          break;
-        case err.POSITION_UNAVAILABLE:
-          msg = "Position nicht verfügbar.";
-          break;
-        case err.TIMEOUT:
-          msg = "Zeitüberschreitung bei der Standortabfrage.";
-          break;
-      }
-      statusEl.innerHTML = '<span class="warn">' + msg + '</span>';
+      );
+    } else {
+      statusEl.innerHTML = '<span class="warn">Geolocation wird nicht unterstützt.</span>';
     }
   </script>
-
-  <p class="status">
-    Hinweis: Standortfreigabe funktioniert nur über HTTPS (GitHub Pages nutzt HTTPS).
-    Diese Seite zeigt keine Karte und speichert keine Namen – es wird nur gesendet.
-  </p>
 </body>
 </html>
