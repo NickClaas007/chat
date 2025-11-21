@@ -1,89 +1,49 @@
+
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>Standort Freigabe & Senden</title>
+  <title>Test Insert</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 24px; }
-    .status { margin-top: 16px; font-weight: bold; }
-    .ok { color: green; }
-    .warn { color: red; }
-  </style>
 </head>
 <body>
-  <h1>Standort Freigabe & Senden</h1>
-  <p>Diese Seite fragt sofort nach Standortfreigabe und sendet die Daten an Supabase.</p>
-
-  <div class="status" id="status">Prüfe Standortfreigabe…</div>
+  <h1>Testwert senden</h1>
+  <button id="testBtn">Test senden</button>
+  <div id="status">Bereit.</div>
 
   <script>
+    // === Supabase Konfiguration ===
     // === Konfiguration: Supabase URL & anon Key ===
     const SUPABASE_URL = "https://cnognczziitfzvnzcdmv.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNub2duY3p6aWl0Znp2bnpjZG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NjA5NzQsImV4cCI6MjA3OTMzNjk3NH0.RCbo1DPG7sHTeKoos3YXkN6-7E7C-irTJIK1eAKeTNI"; // <- hier deinen anon key einsetzen
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const statusEl = document.getElementById("status");
+    const testBtn = document.getElementById("testBtn");
 
-    // Nutzer-ID anonym erzeugen
-    function getOrCreateUserId() {
-      const key = "standort_sender_user_id";
-      let id = localStorage.getItem(key);
-      if (!id) {
-        id = "user_" + crypto.getRandomValues(new Uint32Array(1))[0].toString(16);
-        localStorage.setItem(key, id);
-      }
-      return id;
-    }
-    const USER_ID = getOrCreateUserId();
+    testBtn.addEventListener("click", async () => {
+      // Fester Testwert
+      const payload = {
+        user_id: "testuser",
+        latitude: 48.12345,
+        longitude: 11.54321,
+        timestamp: new Date().toISOString()
+      };
 
-    // Standort sofort abfragen
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          statusEl.innerHTML = '<span class="ok">✅ Standortfreigabe erlaubt!</span><br>' +
-            'Lat: ' + pos.coords.latitude.toFixed(6) +
-            ', Lon: ' + pos.coords.longitude.toFixed(6);
-
-          // Daten an Supabase senden
-          const payload = {
-            user_id: USER_ID,
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            accuracy: pos.coords.accuracy,
-            heading: pos.coords.heading,
-            speed: pos.coords.speed,
-            timestamp: new Date().toISOString()
-          };
-
-          try {
-            const { error } = await supabase.from("locations").insert(payload);
-            if (error) {
-              console.error(error);
-              statusEl.innerHTML += "<br><span class='warn'>Fehler beim Senden: " + error.message + "</span>";
-            } else {
-              statusEl.innerHTML += "<br><span class='ok'>Daten erfolgreich gespeichert!</span>";
-            }
-          } catch (e) {
-            console.error(e);
-            statusEl.innerHTML += "<br><span class='warn'>Unerwarteter Fehler beim Senden.</span>";
-          }
-        },
-        (err) => {
-          let msg = "❌ Standortfreigabe verweigert oder Fehler.";
-          if (err.code === err.PERMISSION_DENIED) {
-            msg = "❌ Standortfreigabe verweigert.";
-          } else if (err.code === err.POSITION_UNAVAILABLE) {
-            msg = "⚠️ Standort nicht verfügbar.";
-          } else if (err.code === err.TIMEOUT) {
-            msg = "⏱️ Zeitüberschreitung bei Standortabfrage.";
-          }
-          statusEl.innerHTML = '<span class="warn">' + msg + '</span>';
+      try {
+        const { error } = await supabase.from("locations").insert(payload);
+        if (error) {
+          console.error(error);
+          statusEl.textContent = "Fehler: " + error.message;
+        } else {
+          statusEl.textContent = "✅ Testwert gespeichert!";
         }
-      );
-    } else {
-      statusEl.innerHTML = '<span class="warn">Geolocation wird nicht unterstützt.</span>';
-    }
+      } catch (e) {
+        console.error(e);
+        statusEl.textContent = "❌ Unerwarteter Fehler.";
+      }
+    });
   </script>
 </body>
 </html>
