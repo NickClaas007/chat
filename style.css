@@ -1,3 +1,9 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 /* Gesamter Login-Bereich */
 #loginblock {
   display: block;            /* damit dein <login>-Tag wie ein Container funktioniert */
@@ -50,16 +56,18 @@ login h1 {
   font-size: 14px;
 }
 
-#chatblock {
-    display: block;
-    max-width: 80%;
-    margin: auto;
+#chatForm {
+    position: fixed;   /* bleibt immer sichtbar */
+    bottom: 10px; 
+    width: 70%;      /* am unteren Rand */
 }
 
 #chatMessage {
     width: 70%;
     padding: 8px;
     border-radius: 4px;
+    flex: 3;
+
 }
 
 #chatForm button {
@@ -71,4 +79,40 @@ login h1 {
     border-radius: 4px;
     font-size: 15px;
     cursor: pointer;
+}
+
+/* Seite soll volle Höhe haben */
+
+
+/* Hauptcontainer für Chat + Sidebar */
+#main {
+  display: flex;       /* aktiviert Flexbox */
+  height: 100%;        /* nimmt die volle Höhe der Seite */
+  gap: 20px;           /* Abstand zwischen Chat und Sidebar */
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* Chatbereich */
+#chatblock {
+  flex: 3;             /* nimmt 3 Teile der Breite */
+  background: #f9f9f9; /* heller Hintergrund */
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  overflow-y: auto;    /* Scrollbar falls Inhalte länger sind */
+}
+
+/* Sidebar */
+#sidebar {
+  flex: 1;             /* nimmt 1 Teil der Breite */
+  background: #eee;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  overflow-y: auto;    /* Scrollbar falls Inhalte länger sind */
+}
+
+#messagesSection button {
+    display: none;
 }
