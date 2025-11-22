@@ -97,33 +97,50 @@
     });
 
     // Nachrichten abrufen und anzeigen
-    async function loadMessages() {
-      const { data, error } = await client
-        .from("chat")
-        .select("id, time, message, user:user_id(username)") // Join über user_id
-        .order("time", { ascending: true });
+// Funktion bleibt wie du sie hast
+async function loadMessages() {
+  const { data, error } = await client
+    .from("chat")
+    .select("id, time, message, user:user_id(username)")
+    .order("time", { ascending: true });
 
-      if (error) {
-        console.error(error);
-        return;
-      }
+  if (error) {
+    console.error(error);
+    return;
+  }
 
-      const container = document.getElementById("messages");
-      container.innerHTML = "";
+  const container = document.getElementById("messages");
+  container.innerHTML = "";
 
-      data.forEach(row => {
-        const time = new Date(row.time).toLocaleString("de-DE", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit"
-        });
-        const line = document.createElement("div");
-        line.textContent = `${time} ${row.user.username}: ${row.message}`;
-        container.appendChild(line);
-      });
+  data.forEach(row => {
+    const time = new Date(row.time).toLocaleString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+    const line = document.createElement("div");
+    line.textContent = `${time} ${row.user.username}: ${row.message}`;
+    container.appendChild(line);
+  });
+}
+
+// === Realtime-Subscription ===
+// Direkt NACH der Funktion einfügen
+client
+  .channel('chat-room')
+  .on(
+    'postgres_changes',
+    { event: 'INSERT', schema: 'public', table: 'chat' },
+    (payload) => {
+      console.log('Neue Nachricht:', payload.new);
+      // Einfach alle Nachrichten neu laden
+      loadMessages();
     }
+  )
+  .subscribe();
+
   </script>
 </body>
 </html>
