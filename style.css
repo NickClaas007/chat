@@ -105,6 +105,7 @@ login h1 {
 
 /* Sidebar */
 #sidebar {
+  display: none;
   flex: 1;             /* nimmt 1 Teil der Breite */
   background: #eee;
   border-radius: 8px;
