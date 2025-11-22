@@ -20,23 +20,30 @@
 
         <div id="loginStatus">Nicht eingeloggt.</div>
     </div>
-    <div id="chatblock" style="display:none;">
-  <!-- Chat Formular (nur sichtbar nach Login) -->
-        <form id="chatForm" style="margin-top:20px;">
-            <label><input type="text" id="chatMessage" required></label>
-            <button type="submit">Senden</button>
-        </form>
-
-        <div id="chatStatus"></div>
-
-    <!-- Nachrichtenliste (erst sichtbar nach Login) -->
-        <div id="messagesSection">
-            <h2>Nachrichten</h2>
-            <button id="reloadBtn">🔄 Nachrichten neu laden</button>
-            <div id="messages" style="margin-top:10px;"></div>
+    <div id="main">
+        <div id="sidebar">
+            <h1>Chats</h1>
         </div>
-    </div>
-  <script>
+        
+        <div id="chatblock" style="display:none;">
+            <!-- Chat Formular (nur sichtbar nach Login) -->
+            <div id="messagesSection">
+                <h2>Nachrichten</h2>
+                <button id="reloadBtn">🔄 Nachrichten neu laden</button>
+                <div id="messages" style="margin-top:10px;"></div>
+            </div>
+ 
+            <form id="chatForm" style="margin-top:20px;">
+                <label><input type="text" id="chatMessage" required></label>
+                <button type="submit">Senden</button>
+            </form>
+
+            <div id="chatStatus"></div>
+            <!-- Nachrichtenliste (erst sichtbar nach Login) -->
+        </div>
+        
+    </div>        
+<script>
     // === Supabase Konfiguration ===
     const SUPABASE_URL = "https://cnognczziitfzvnzcdmv.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNub2duY3p6aWl0Znp2bnpjZG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NjA5NzQsImV4cCI6MjA3OTMzNjk3NH0.RCbo1DPG7sHTeKoos3YXkN6-7E7C-irTJIK1eAKeTNI";
@@ -73,7 +80,8 @@
       localStorage.setItem("user_id", data.id);
       document.getElementById("loginStatus").textContent = "✅ Eingeloggt als " + username;
       document.getElementById("loginblock").style.display = "none";
-      document.getElementById("chatblock").style.display = "block"
+      document.getElementById("chatblock").style.display = "block";
+      document.getElementById("sidebar").style.display = "block";
       // Nachrichten laden
       loadMessages();
 
