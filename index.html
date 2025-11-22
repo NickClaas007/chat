@@ -67,24 +67,27 @@
     });
 
     // Nachricht senden
-    document.getElementById("chatForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!currentUser) {
-        document.getElementById("chatStatus").textContent = "❌ Bitte zuerst einloggen.";
-        return;
-      }
+  document.getElementById("chatForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!currentUser) {
+    document.getElementById("chatStatus").textContent = "❌ Bitte zuerst einloggen.";
+    return;
+  }
 
-      const msg = document.getElementById("chatMessage").value;
-      const payload = { message: msg };
+  const msg = document.getElementById("chatMessage").value;
 
-      const { error } = await client.from("chat").insert(payload);
-      if (error) {
-        document.getElementById("chatStatus").textContent = "❌ Fehler: " + error.message;
-      } else {
-        document.getElementById("chatStatus").textContent = "✅ Nachricht gespeichert!";
-        document.getElementById("chatForm").reset();
-      }
-    });
+  // Nachricht + User-ID speichern
+  const payload = { message: msg, user_id: currentUser.id };
+
+  const { error } = await client.from("chat").insert(payload);
+  if (error) {
+    document.getElementById("chatStatus").textContent = "❌ Fehler: " + error.message;
+  } else {
+    document.getElementById("chatStatus").textContent = "✅ Nachricht gespeichert!";
+    document.getElementById("chatForm").reset();
+  }
+});
+
   </script>
 </body>
 </html>
