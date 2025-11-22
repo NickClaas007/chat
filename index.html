@@ -29,7 +29,8 @@
   <!-- Nachrichtenliste (erst sichtbar nach Login) -->
   <div id="messagesSection" style="display:none;">
     <h2>Nachrichten</h2>
-    <div id="messages"></div>
+    <button id="reloadBtn">🔄 Nachrichten neu laden</button>
+    <div id="messages" style="margin-top:10px;"></div>
   </div>
 
   <script>
@@ -95,7 +96,7 @@
       } else {
         document.getElementById("chatStatus").textContent = "✅ Nachricht gespeichert!";
         document.getElementById("chatForm").reset();
-        // loadMessages(); // nicht nötig, da Realtime-Event kommt
+        // kein loadMessages() nötig, da Realtime-Event kommt
       }
     });
 
@@ -143,6 +144,11 @@
         )
         .subscribe();
     }
+
+    // Reload-Button
+    document.getElementById("reloadBtn").addEventListener("click", () => {
+      loadMessages();
+    });
   </script>
 </body>
 </html>
