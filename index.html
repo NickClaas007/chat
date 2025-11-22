@@ -26,15 +26,18 @@
 
   <div id="chatStatus"></div>
 
-  <!-- Nachrichtenliste -->
-  <h2>Nachrichten</h2>
-  <div id="messages"></div>
+  <!-- Nachrichtenliste (erst sichtbar nach Login) -->
+  <div id="messagesSection" style="display:none;">
+    <h2>Nachrichten</h2>
+    <div id="messages"></div>
+  </div>
 
   <script>
     // === Supabase Konfiguration ===
     const SUPABASE_URL = "https://cnognczziitfzvnzcdmv.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNub2duY3p6aWl0Znp2bnpjZG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NjA5NzQsImV4cCI6MjA3OTMzNjk3NH0.RCbo1DPG7sHTeKoos3YXkN6-7E7C-irTJIK1eAKeTNI"; // <- dein anon key
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNub2duY3p6aWl0Znp2bnpjZG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NjA5NzQsImV4cCI6MjA3OTMzNjk3NH0.RCbo1DPG7sHTeKoos3YXkN6-7E7C-irTJIK1eAKeTNI";
     const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     let currentUser = null;
 
     // Login
@@ -66,6 +69,7 @@
       localStorage.setItem("user_id", data.id);
       document.getElementById("loginStatus").textContent = "✅ Eingeloggt als " + username;
       document.getElementById("chatForm").style.display = "block";
+      document.getElementById("messagesSection").style.display = "block"; // Nachrichten sichtbar machen
 
       // Nachrichten laden
       loadMessages();
@@ -96,7 +100,7 @@
     async function loadMessages() {
       const { data, error } = await client
         .from("chat")
-        .select("time, message, user:username")
+        .select("id, time, message, user:user_id(username)") // Join über user_id
         .order("time", { ascending: true });
 
       if (error) {
@@ -104,24 +108,22 @@
         return;
       }
 
-const container = document.getElementById("messages");
-container.innerHTML = "";
+      const container = document.getElementById("messages");
+      container.innerHTML = "";
 
-data.forEach(row => {
-  const time = new Date(row.time).toLocaleString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-  const line = document.createElement("div");
-  line.textContent = `${time} ${row.user.username}: ${row.message}`;
-  container.appendChild(line);
-});
-
+      data.forEach(row => {
+        const time = new Date(row.time).toLocaleString("de-DE", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+        const line = document.createElement("div");
+        line.textContent = `${time} ${row.user.username}: ${row.message}`;
+        container.appendChild(line);
+      });
     }
   </script>
 </body>
 </html>
-
