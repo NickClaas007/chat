@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login & Chat</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
+</head>
+<body>
+  <h1>Login & Chat</h1>
+
+  <!-- Login Formular -->
+  <form id="loginForm">
+    <label>Username: <input type="text" id="loginUser" required></label><br>
+    <label>Passwort: <input type="password" id="loginPass" required></label><br>
+    <button type="submit">Login</button>
+  </form>
+
+  <div id="loginStatus">Nicht eingeloggt.</div>
+
+  <!-- Chat Formular -->
+  <form id="chatForm" style="margin-top:20px; display:none;">
+    <label>Nachricht: <input type="text" id="chatMessage" required></label>
+    <button type="submit">Senden</button>
+  </form>
+
+  <div id="chatStatus"></div>
+
+  <script>
+    const SUPABASE_URL = "https://cnognczziitfzvnzcdmv.supabase.co";
+    const SUPABASE_ANON_KEY = "DEIN_ANON_KEY_HIER";
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentUser = null;
+
+    // Login
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("loginUser").value;
+      const password = document.getElementById("loginPass").value;
+
+      // User aus DB holen
+      const { data, error } = await client.from("user").select("*").eq("username", username).single();
+      if (error || !data) {
+        document.getElementById("loginStatus").textContent = "❌ Benutzer nicht gefunden.";
+        return;
+      }
+
+      // Passwort prüfen
+      const match = bcrypt.compareSync(password, data.password_hash);
+      if (!match) {
+        document.getElementById("loginStatus").textContent = "❌ Passwort falsch.";
+        return;
+      }
+
+      // Login erfolgreich
+      currentUser = data;
+      localStorage.setItem("user_id", data.id);
+      document.getElementById("loginStatus").textContent = "✅ Eingeloggt als " + username;
+      document.getElementById("chatForm").style.display = "block";
+    });
+
+    // Nachricht senden
+    document.getElementById("chatForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!currentUser) {
+        document.getElementById("chatStatus").textContent = "❌ Bitte zuerst einloggen.";
+        return;
+      }
+
+      const msg = document.getElementById("chatMessage").value;
+      const payload = { message: msg };
+
+      const { error } = await client.from("chat").insert(payload);
+      if (error) {
+        document.getElementById("chatStatus").textContent = "❌ Fehler: " + error.message;
+      } else {
+        document.getElementById("chatStatus").textContent = "✅ Nachricht gespeichert!";
+        document.getElementById("chatForm").reset();
+      }
+    });
+  </script>
+</body>
+</html>
