@@ -86,7 +86,7 @@ login h1 {
 
 /* Hauptcontainer für Chat + Sidebar */
 #main {
-  display: flex;       /* aktiviert Flexbox */
+  display: none;       /* aktiviert Flexbox */
   height: 100%;        /* nimmt die volle Höhe der Seite */
   gap: 20px;           /* Abstand zwischen Chat und Sidebar */
   padding: 10px;
