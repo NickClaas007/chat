@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>Login & Chat</title>
+  <!-- Supabase Bibliothek -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
 </head>
 <body>
   <h1>Login & Chat</h1>
@@ -18,7 +18,7 @@
 
   <div id="loginStatus">Nicht eingeloggt.</div>
 
-  <!-- Chat Formular -->
+  <!-- Chat Formular (nur sichtbar nach Login) -->
   <form id="chatForm" style="margin-top:20px; display:none;">
     <label>Nachricht: <input type="text" id="chatMessage" required></label>
     <button type="submit">Senden</button>
@@ -27,6 +27,7 @@
   <div id="chatStatus"></div>
 
   <script>
+    // === Supabase Konfiguration ===
     const SUPABASE_URL = "https://cnognczziitfzvnzcdmv.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNub2duY3p6aWl0Znp2bnpjZG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NjA5NzQsImV4cCI6MjA3OTMzNjk3NH0.RCbo1DPG7sHTeKoos3YXkN6-7E7C-irTJIK1eAKeTNI"; // <- dein anon key
 
@@ -41,15 +42,19 @@
       const password = document.getElementById("loginPass").value;
 
       // User aus DB holen
-      const { data, error } = await client.from("user").select("*").eq("username", username).single();
+      const { data, error } = await client
+        .from("user")
+        .select("*")
+        .eq("username", username)
+        .single();
+
       if (error || !data) {
         document.getElementById("loginStatus").textContent = "❌ Benutzer nicht gefunden.";
         return;
       }
 
-      // Passwort prüfen
-      const match = bcrypt.compareSync(password, data.password_hash);
-      if (!match) {
+      // Passwort prüfen (Klartext-Vergleich)
+      if (password !== data.password_hash) {
         document.getElementById("loginStatus").textContent = "❌ Passwort falsch.";
         return;
       }
@@ -83,3 +88,4 @@
   </script>
 </body>
 </html>
+
