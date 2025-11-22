@@ -1,0 +1,51 @@
+/* Gesamter Login-Bereich */
+login {
+  display: block;            /* damit dein <login>-Tag wie ein Container funktioniert */
+  max-width: 400px;          /* Breite begrenzen */
+  margin: 50px auto;         /* mittig auf der Seite */
+  padding: 20px;
+  border: 1px solid #ccc;    /* dezenter Rahmen */
+  border-radius: 8px;
+  background-color: #f9f9f9; /* heller Hintergrund */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Überschrift */
+login h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Eingabefelder */
+#loginForm input {
+  width: 100%;
+  padding: 8px;
+  margin: 6px 0;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Button */
+#loginForm button {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff; /* Blau */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+#loginForm button:hover {
+  background-color: #0056b3; /* dunkler Blau-Ton beim Hover */
+}
+
+/* Statusanzeige */
+#loginStatus {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 14px;
+}
