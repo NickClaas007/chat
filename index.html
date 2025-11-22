@@ -149,6 +149,15 @@
     document.getElementById("reloadBtn").addEventListener("click", () => {
       loadMessages();
     });
+
+    // Imaginärer Mauszeiger: klickt 2x pro Sekunde auf den Reload-Button
+    setInterval(() => {
+      const btn = document.getElementById("reloadBtn");
+      if (btn) {
+        btn.click(); // simuliert einen Klick
+        console.log("Reload-Button automatisch gedrückt");
+      }
+    }, 500); // alle 500ms = 2x pro Sekunde
   </script>
 </body>
 </html>
