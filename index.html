@@ -6,35 +6,36 @@
   <!-- Supabase Bibliothek -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="style.css">
-
+</head>
 <body>
-    <login>
-    <h1>Login & Chat</h1>
+    <div id="loginblock">
+        <h1>Login & Chat</h1>
 
   <!-- Login Formular -->
-    <form id="loginForm">
-        <label>Username: <input type="text" id="loginUser" required></label><br>
-        <label>Passwort: <input type="password" id="loginPass" required></label><br>
-        <button type="submit">Login</button>
-    </form>
+        <form id="loginForm">
+            <label>Username: <input type="text" id="loginUser" required></label><br>
+            <label>Passwort: <input type="password" id="loginPass" required></label><br>
+            <button type="submit">Login</button>
+        </form>
 
-    <div id="loginStatus">Nicht eingeloggt.</div>
-  </login>
+        <div id="loginStatus">Nicht eingeloggt.</div>
+    </div>
+    <div id="chatblock" style="display:none;">
   <!-- Chat Formular (nur sichtbar nach Login) -->
-  <form id="chatForm" style="margin-top:20px; display:none;">
-    <label>Nachricht: <input type="text" id="chatMessage" required></label>
-    <button type="submit">Senden</button>
-  </form>
+        <form id="chatForm" style="margin-top:20px;">
+            <label>Nachricht: <input type="text" id="chatMessage" required></label>
+            <button type="submit">Senden</button>
+        </form>
 
-  <div id="chatStatus"></div>
+        <div id="chatStatus"></div>
 
-  <!-- Nachrichtenliste (erst sichtbar nach Login) -->
-  <div id="messagesSection" style="display:none;">
-    <h2>Nachrichten</h2>
-    <button id="reloadBtn">🔄 Nachrichten neu laden</button>
-    <div id="messages" style="margin-top:10px;"></div>
-  </div>
-
+    <!-- Nachrichtenliste (erst sichtbar nach Login) -->
+        <div id="messagesSection">
+            <h2>Nachrichten</h2>
+            <button id="reloadBtn">🔄 Nachrichten neu laden</button>
+            <div id="messages" style="margin-top:10px;"></div>
+        </div>
+    </div>
   <script>
     // === Supabase Konfiguration ===
     const SUPABASE_URL = "https://cnognczziitfzvnzcdmv.supabase.co";
@@ -71,9 +72,8 @@
       currentUser = data;
       localStorage.setItem("user_id", data.id);
       document.getElementById("loginStatus").textContent = "✅ Eingeloggt als " + username;
-      document.getElementById("chatForm").style.display = "block";
-      document.getElementById("messagesSection").style.display = "block"; // Nachrichten sichtbar machen
-
+      document.getElementById("loginblock").style.display = "none";
+      document.getElementById("chatblock").style.display = "block"
       // Nachrichten laden
       loadMessages();
 
