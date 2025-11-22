@@ -104,22 +104,22 @@
         return;
       }
 
-      const container = document.getElementById("messages");
-      container.innerHTML = "";
+const container = document.getElementById("messages");
+container.innerHTML = "";
 
-      data.forEach(row => {
-        // Datum + Uhrzeit schön formatiert
-        const time = new Date(row.time).toLocaleString("de-DE", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit"
-        });
-        const line = document.createElement("div");
-        line.textContent = `${time} ${row.user.username}: ${row.message}`;
-        container.appendChild(line);
-      });
+data.forEach(row => {
+  const time = new Date(row.time).toLocaleString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+  const line = document.createElement("div");
+  line.textContent = `${time} ${row.user.username}: ${row.message}`;
+  container.appendChild(line);
+});
+
     }
   </script>
 </body>
