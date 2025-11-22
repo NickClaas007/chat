@@ -1,5 +1,5 @@
 /* Gesamter Login-Bereich */
-login {
+#loginblock {
   display: block;            /* damit dein <login>-Tag wie ein Container funktioniert */
   max-width: 400px;          /* Breite begrenzen */
   margin: 50px auto;         /* mittig auf der Seite */
