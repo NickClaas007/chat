@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login & Chat</title>
+  <!-- Supabase Bibliothek -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>Login & Chat</h1>
+
+  <!-- Login Formular -->
+  <form id="loginForm">
+    <label>Username: <input type="text" id="loginUser" required></label><br>
+    <label>Passwort: <input type="password" id="loginPass" required></label><br>
+    <button type="submit">Login</button>
+  </form>
+
+  <div id="loginStatus">Nicht eingeloggt.</div>
+
+  <!-- Chat Formular (nur sichtbar nach Login) -->
+  <form id="chatForm" style="margin-top:20px; display:none;">
+    <label>Nachricht: <input type="text" id="chatMessage" required></label>
+    <button type="submit">Senden</button>
+  </form>
+
+  <div id="chatStatus"></div>
+
+  <!-- Nachrichtenliste -->
+  <h2>Nachrichten</h2>
+  <div id="messages"></div>
+
+  <script>
+    // === Supabase Konfiguration ===
+    const SUPABASE_URL = "https://cnognczziitfzvnzcdmv.supabase.co";
+    const SUPABASE_ANON_KEY = "DEIN_ANON_KEY_HIER"; // <- hier deinen anon key einsetzen
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentUser = null;
+
+    // Login
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("loginUser").value;
+      const password = document.getElementById("loginPass").value;
+
+      // User aus DB holen
+      const { data, error } = await client
+        .from("user")
+        .select("*")
+        .eq("username", username)
+        .single();
+
+      if (error || !data) {
+        document.getElementById("loginStatus").textContent = "❌ Benutzer nicht gefunden.";
+        return;
+      }
+
+      // Passwort prüfen (Klartext-Vergleich)
+      if (password !== data.password_hash) {
+        document.getElementById("loginStatus").textContent = "❌ Passwort falsch.";
+        return;
+      }
+
+      // Login erfolgreich
+      currentUser = data;
+      localStorage.setItem("user_id", data.id);
+      document.getElementById("loginStatus").textContent = "✅ Eingeloggt als " + username;
+      document.getElementById("chatForm").style.display = "block";
+
+      // Nachrichten laden
+      loadMessages();
+    });
+
+    // Nachricht senden
+    document.getElementById("chatForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!currentUser) {
+        document.getElementById("chatStatus").textContent = "❌ Bitte zuerst einloggen.";
+        return;
+      }
+
+      const msg = document.getElementById("chatMessage").value;
+      const payload = { message: msg, user_id: currentUser.id }; // time wird automatisch gesetzt
+
+      const { error } = await client.from("chat").insert(payload);
+      if (error) {
+        document.getElementById("chatStatus").textContent = "❌ Fehler: " + error.message;
+      } else {
+        document.getElementById("chatStatus").textContent = "✅ Nachricht gespeichert!";
+        document.getElementById("chatForm").reset();
+        loadMessages(); // Liste aktualisieren
+      }
+    });
+
+    // Nachrichten abrufen und anzeigen
+    async function loadMessages() {
+      const { data, error } = await client
+        .from("chat")
+        .select("time, message, user:username")
+        .order("time", { ascending: true });
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      const container = document.getElementById("messages");
+      container.innerHTML = "";
+
+      data.forEach(row => {
+        const time = new Date(row.time).toLocaleString();
+        const line = document.createElement("div");
+        line.textContent = `${time} ${row.user.username}: ${row.message}`;
+        container.appendChild(line);
+      });
+    }
+  </script>
+</body>
+</html>
