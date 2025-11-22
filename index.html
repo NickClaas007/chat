@@ -95,11 +95,15 @@
       const { error } = await client.from("chat").insert(payload);
       if (error) {
         document.getElementById("chatStatus").textContent = "❌ Fehler: " + error.message;
-      } else {
-        document.getElementById("chatStatus").textContent = "✅ Nachricht gespeichert!";
-        document.getElementById("chatForm").reset();
+      } 
+      //else {
+      //  document.getElementById("chatStatus").textContent = "✅ Nachricht wurde gesendet!";
+      //  document.getElementById("chatForm").reset();
+      //  setTimeout(() => {
+      //      document.getElementById("chatStatus").textContent = "";
+      //   }, 1500);  
         // kein loadMessages() nötig, da Realtime-Event kommt
-      }
+      //}
     });
 
     // Nachrichten abrufen und anzeigen
