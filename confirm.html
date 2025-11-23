@@ -2,35 +2,43 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Bestätigung</title>
+  <title>E-Mail Bestätigung</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <h1>E-Mail Bestätigung</h1>
   <div id="status">Bitte warten...</div>
+  <p id="backlink" style="display:none;">
+    <a href="https://nickclaas007.github.io/chat/">Zur Anmeldung zurück</a>
+  </p>
 
   <script>
+    // Deine Supabase Projekt-URL und Public Anon Key
     const SUPABASE_URL = "https://cnognczziitfzvnzcdmv.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNub2duY3p6aWl0Znp2bnpjZG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NjA5NzQsImV4cCI6MjA3OTMzNjk3NH0.RCbo1DPG7sHTeKoos3YXkN6-7E7C-irTJIK1eAKeTNI";
+
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function handleConfirmation() {
-      // Supabase tauscht den Code aus der URL gegen eine Session
+      // Supabase prüft automatisch, ob ein Token in der URL hängt
       const { data, error } = await supabaseClient.auth.getSession();
 
       if (error) {
         document.getElementById("status").textContent = "Fehler: " + error.message;
-        console.error(error);
+        console.error("Bestätigung Fehler:", error);
       } else if (data.session) {
         document.getElementById("status").textContent =
           "E-Mail bestätigt! Willkommen " + data.session.user.email;
 
-        // Nach ein paar Sekunden zurück zur Login-Seite
+        // Link zurück zur Anmeldung anzeigen
+        document.getElementById("backlink").style.display = "block";
+
+        // Optional: automatische Weiterleitung nach 3 Sekunden
         setTimeout(() => {
           window.location.href = "https://nickclaas007.github.io/chat/";
         }, 3000);
       } else {
-        document.getElementById("status").textContent = "Keine Session gefunden.";
+        document.getElementById("status").textContent = "Keine gültige Session gefunden.";
       }
     }
 
