@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Supabase Auth Beispiel</title>
+  <!-- Supabase JS Client einbinden -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>Registrierung</h1>
+  <form id="signup-form">
+    <input type="email" id="signup-email" placeholder="E-Mail" required>
+    <input type="password" id="signup-password" placeholder="Passwort" required>
+    <button type="submit">Registrieren</button>
+  </form>
+  <div id="signup-message"></div>
+
+  <h1>Login</h1>
+  <form id="login-form">
+    <input type="email" id="login-email" placeholder="E-Mail" required>
+    <input type="password" id="login-password" placeholder="Passwort" required>
+    <button type="submit">Login</button>
+  </form>
+  <div id="login-message"></div>
+
+  <script>
+    // Dein Supabase-Projekt-URL und Public Anon Key
+
+    const SUPABASE_URL = "https://cnognczziitfzvnzcdmv.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNub2duY3p6aWl0Znp2bnpjZG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NjA5NzQsImV4cCI6MjA3OTMzNjk3NH0.RCbo1DPG7sHTeKoos3YXkN6-7E7C-irTJIK1eAKeTNI";
+
+    // Supabase-Client erstellen
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Registrierung
+    const signupForm = document.getElementById("signup-form");
+    const signupMessage = document.getElementById("signup-message");
+
+    signupForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("signup-email").value;
+      const password = document.getElementById("signup-password").value;
+
+      const { data, error } = await supabaseClient.auth.signUp({
+        email: email,
+        password: password,
+      });
+
+      if (error) {
+        signupMessage.textContent = "Fehler: " + error.message;
+        console.error("Signup Error:", error);
+      } else {
+        signupMessage.textContent = "Registrierung erfolgreich! Bitte bestätige deine E-Mail.";
+        console.log("Signup Data:", data);
+      }
+    });
+
+    // Login
+    const loginForm = document.getElementById("login-form");
+    const loginMessage = document.getElementById("login-message");
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (error) {
+        loginMessage.textContent = "Fehler: " + error.message;
+        console.error("Login Error:", error);
+      } else {
+        loginMessage.textContent = "Login erfolgreich! Willkommen " + data.user.email;
+        console.log("Login Data:", data);
+      }
+    });
+  </script>
+</body>
+</html>
