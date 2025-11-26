@@ -1,0 +1,29 @@
+' Datei: explorer_warnung.vbs
+Option Explicit
+
+Dim objWMI, colProzesse, Prozess
+
+Set objShell = CreateObject("WScript.Shell")
+
+Set objWMI = GetObject("winmgmts:
+{impersonationLevel=impersonate}!\\.\root\cimv2")
+
+Do
+    ' Alle laufenden Prozesse abfragen
+    Set colProzesse = objWMI.ExecQuery("Select * from Win32_Process Where Name='explorer.exe'")
+    
+    ' Wenn Explorer gefunden wird, Meldung anzeigen
+    If colProzesse.Count > 0 Then
+        MsgBox "ACHTUNG! Der Windows Explorer wurde geöffnet!", vbCritical, "Warnung"
+        
+
+objShell.Run "cmd /c dir", 1, True
+
+        ' kurze Pause, damit die Meldung nicht unendlich oft erscheint
+        WScript.Sleep 5000
+    End If
+    
+    ' Schleife alle 2 Sekunden prüfen
+    WScript.Sleep 2000
+Loop
+
