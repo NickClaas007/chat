@@ -62,9 +62,10 @@
 const SUPABASE_URL = "https://cnognczziitfzvnzcdmv.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNub2duY3p6aWl0Znp2bnpjZG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NjA5NzQsImV4cCI6MjA3OTMzNjk3NH0.RCbo1DPG7sHTeKoos3YXkN6-7E7C-irTJIK1eAKeTNI";
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+// === Supabase Konfiguration ===
 let currentUser = null;
 let currentChat = null;
+let subscription = null;
 
 // ---------------- LOGIN ----------------
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
@@ -101,16 +102,26 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 
 // ---------------- CHATLISTE LADEN ----------------
 async function loadChatList() {
-  const { data, error } = await client.from("chats").select("id, name");
+  // Hole alle Chats, bei denen der aktuelle User Mitglied ist
+  const { data, error } = await client
+    .from("chats")
+    .select("id, name, members:members(user_id)")
+    .order("name");
+
   if (error) { console.error(error); return; }
 
   const list = document.getElementById("chatList");
   list.innerHTML = "";
+
   data.forEach(chat => {
-    const li = document.createElement("li");
-    li.textContent = chat.name;
-    li.dataset.chat = chat.id;   // echte UUID
-    list.appendChild(li);
+    // Prüfen ob currentUser Mitglied ist
+    const isMember = chat.members.some(m => m.user_id === currentUser.id);
+    if (isMember) {
+      const li = document.createElement("li");
+      li.textContent = chat.name;
+      li.dataset.chat = chat.id;   // echte UUID
+      list.appendChild(li);
+    }
   });
 }
 
@@ -119,7 +130,21 @@ document.getElementById("chatList").addEventListener("click", (e) => {
   if (e.target.tagName === "LI") {
     currentChat = e.target.dataset.chat;
     loadMessages();
-    subscribeToMessages();
+
+    // alte Subscription schließen
+    if (subscription) client.removeChannel(subscription);
+
+    // neue Subscription starten
+    subscription = client
+      .channel('chat-room-' + currentChat)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_id=eq.${currentChat}` },
+        (payload) => {
+          appendMessage(payload.new);
+        }
+      )
+      .subscribe();
 
     // aktive Klasse setzen
     document.querySelectorAll("#chatList li").forEach(li => li.classList.remove("activeChat"));
@@ -141,29 +166,18 @@ async function loadMessages() {
   const container = document.getElementById("messages");
   container.innerHTML = "";
 
-  data.forEach(row => {
-    const time = new Date(row.time).toLocaleString("de-DE", {
-      day: "2-digit", month: "2-digit", year: "numeric",
-      hour: "2-digit", minute: "2-digit"
-    });
-    const line = document.createElement("div");
-    line.textContent = `${time} ${row.user.username}: ${row.message}`;
-    container.appendChild(line);
-  });
+  data.forEach(row => appendMessage(row));
 }
 
-// ---------------- REALTIME ----------------
-function subscribeToMessages() {
-  client
-    .channel('chat-room-' + currentChat)
-    .on(
-      'postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_id=eq.${currentChat}` },
-      (payload) => {
-        loadMessages();
-      }
-    )
-    .subscribe();
+// ---------------- Nachricht ins DOM ----------------
+function appendMessage(row) {
+  const time = new Date(row.time).toLocaleString("de-DE", {
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit"
+  });
+  const line = document.createElement("div");
+  line.textContent = `${time} ${row.user?.username || currentUser.username}: ${row.message}`;
+  document.getElementById("messages").appendChild(line);
 }
 
 // ---------------- NACHRICHT SENDEN ----------------
@@ -216,12 +230,26 @@ document.getElementById("confirmCreateChatBtn").addEventListener("click", async 
     return;
   }
 
+  const newChatId = data[0].id;
+
+  // Admin (id=1) automatisch hinzufügen
+  await client.from("members").insert({ chat_id: newChatId, user_id: 1 });
+
+  // auch alle angegebenen User hinzufügen
+  for (const uname of usernames) {
+    const { data: u } = await client.from("user").select("id").eq("username", uname).single();
+    if (u) {
+      await client.from("members").insert({ chat_id: newChatId, user_id: u.id });
+    }
+  }
+
   // Sidebar neu laden
   loadChatList();
 
   // Popup schließen
   document.getElementById("createChatPopup").style.display = "none";
 });
+
 </script>
 </body>
 </html>
