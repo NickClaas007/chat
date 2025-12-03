@@ -15,7 +15,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   const password = document.getElementById("loginPass").value;
 
   const { data, error } = await client
-    .from("user")
+    .from("users")
     .select("*")
     .eq("username", username)
     .single();
