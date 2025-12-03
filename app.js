@@ -138,6 +138,7 @@ document.getElementById("chatForm").addEventListener("submit", async (e) => {
     msgInput.value = "";
     document.getElementById("chatStatus").textContent = "";
   }
+  loadChatList()
 });
 
 // ---------------- CREATE CHAT POPUP ----------------
@@ -208,3 +209,9 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   loadChatList();
 });
+// ---------------- AUTO-REFRESH alle 500ms ----------------
+setInterval(() => {
+  if (currentChat) {
+    loadMessages();
+  }
+}, 500); // 500ms = 2x pro Sekunde
