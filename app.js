@@ -15,11 +15,12 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   const password = document.getElementById("loginPass").value.trim();
 
   // Case-insensitive Suche nach Username
-  const { data, error } = await client
-    .from("user")
-    .select("*")
-    .ilike("username", username)
-    .single();
+const { data, error } = await client
+  .from("user")
+  .select("*")
+  .eq("username", username.trim())   // exakter Vergleich
+  .maybeSingle();                    // gibt null zurück, wenn nichts gefunden
+
 
   if (error || !data) {
     document.getElementById("loginStatus").textContent = "❌ Benutzer nicht gefunden.";
