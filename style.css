@@ -103,11 +103,16 @@ html, body {
   background: #bbb;
 }
 
+#chatList li.activeChat {
+  background: #007bff; /* Blau */
+  color: white;
+}
+
 /* Create Chat Button */
 #createChatBtn {
   width: 100%;
   padding: 10px;
-  background-color: #007bff; /* gleicher Stil wie Login */
+  background-color: #007bff;
   color: white;
   border: none;
   border-radius: 4px;
@@ -191,7 +196,7 @@ html, body {
 .popup button {
   width: 100%;
   padding: 10px;
-  background-color: #007bff; /* gleicher Stil wie Login */
+  background-color: #007bff;
   color: white;
   border: none;
   border-radius: 4px;
