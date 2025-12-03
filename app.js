@@ -102,20 +102,7 @@ function appendMessage(row) {
 }
 
 // ---------------- REALTIME ----------------
-function subscribeToMessages(chatId) {
-  if (subscription) client.removeChannel(subscription);
 
-  subscription = client
-    .channel('chat-room-' + chatId)
-    .on(
-      'postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_id=eq.${chatId}` },
-      (payload) => {
-        appendMessage(payload.new);
-      }
-    )
-    .subscribe();
-}
 
 // ---------------- NACHRICHT SENDEN ----------------
 document.getElementById("chatForm").addEventListener("submit", async (e) => {
