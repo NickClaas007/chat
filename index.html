@@ -58,161 +58,167 @@
     </div>
 
 <script>
-    // === Supabase Konfiguration ===
-    const SUPABASE_URL = "https://cnognczziitfzvnzcdmv.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNub2duY3p6aWl0Znp2bnpjZG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NjA5NzQsImV4cCI6MjA3OTMzNjk3NH0.RCbo1DPG7sHTeKoos3YXkN6-7E7C-irTJIK1eAKeTNI";
-    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// === Supabase Konfiguration ===
+const SUPABASE_URL = "https://cnognczziitfzvnzcdmv.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNub2duY3p6aWl0Znp2bnpjZG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NjA5NzQsImV4cCI6MjA3OTMzNjk3NH0.RCbo1DPG7sHTeKoos3YXkN6-7E7C-irTJIK1eAKeTNI";
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let currentUser = null;
-    let currentChat = "infos"; // Standard-Chat
+let currentUser = null;
+let currentChat = null; // wird nach Auswahl gesetzt
 
-    // Login
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const username = document.getElementById("loginUser").value;
-      const password = document.getElementById("loginPass").value;
+// ---------------- LOGIN ----------------
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const username = document.getElementById("loginUser").value;
+  const password = document.getElementById("loginPass").value;
 
-      const { data, error } = await client
-        .from("user")
-        .select("*")
-        .eq("username", username)
-        .single();
+  const { data, error } = await client
+    .from("user")
+    .select("*")
+    .eq("username", username)
+    .single();
 
-      if (error || !data) {
-        document.getElementById("loginStatus").textContent = "❌ Benutzer nicht gefunden.";
-        return;
-      }
+  if (error || !data) {
+    document.getElementById("loginStatus").textContent = "❌ Benutzer nicht gefunden.";
+    return;
+  }
 
-      if (password !== data.password_hash) {
-        document.getElementById("loginStatus").textContent = "❌ Passwort falsch.";
-        return;
-      }
+  if (password !== data.password_hash) {
+    document.getElementById("loginStatus").textContent = "❌ Passwort falsch.";
+    return;
+  }
 
-      currentUser = data;
-      localStorage.setItem("user_id", data.id);
-      document.getElementById("loginStatus").textContent = "✅ Eingeloggt als " + username;
-      document.getElementById("loginblock").style.display = "none";
-      document.getElementById("chatblock").style.display = "block";
-      document.getElementById("sidebar").style.display = "block";
-      document.getElementById("main").style.display = "flex";
+  currentUser = data;
+  localStorage.setItem("user_id", data.id);
+  document.getElementById("loginStatus").textContent = "✅ Eingeloggt als " + username;
+  document.getElementById("loginblock").style.display = "none";
+  document.getElementById("chatblock").style.display = "block";
+  document.getElementById("sidebar").style.display = "block";
+  document.getElementById("main").style.display = "flex";
 
-      loadMessages();
-      subscribeToMessages();
+  // Sidebar-Chats laden
+  loadChatList();
+});
+
+// ---------------- CHATLISTE LADEN ----------------
+async function loadChatList() {
+  const { data, error } = await client.from("chats").select("id, name");
+  if (error) { console.error(error); return; }
+
+  const list = document.getElementById("chatList");
+  list.innerHTML = "";
+  data.forEach(chat => {
+    const li = document.createElement("li");
+    li.textContent = chat.name;
+    li.dataset.chat = chat.id;   // echte ID
+    list.appendChild(li);
+  });
+}
+
+// ---------------- CHAT WECHSEL ----------------
+document.getElementById("chatList").addEventListener("click", (e) => {
+  if (e.target.tagName === "LI") {
+    currentChat = e.target.dataset.chat;
+    loadMessages();
+    subscribeToMessages();
+  }
+});
+
+// ---------------- NACHRICHTEN LADEN ----------------
+async function loadMessages() {
+  if (!currentChat) return;
+  const { data, error } = await client
+    .from("messages")
+    .select("id, time, message, user:user_id(username)")
+    .eq("chat_id", currentChat)
+    .order("time", { ascending: true });
+
+  if (error) { console.error(error); return; }
+
+  const container = document.getElementById("messages");
+  container.innerHTML = "";
+
+  data.forEach(row => {
+    const time = new Date(row.time).toLocaleString("de-DE", {
+      day: "2-digit", month: "2-digit", year: "numeric",
+      hour: "2-digit", minute: "2-digit"
     });
+    const line = document.createElement("div");
+    line.textContent = `${time} ${row.user.username}: ${row.message}`;
+    container.appendChild(line);
+  });
+}
 
-    // Nachricht senden
-    document.getElementById("chatForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!currentUser) {
-        document.getElementById("chatStatus").textContent = "❌ Bitte zuerst einloggen.";
-        return;
-      }
-
-      const msg = document.getElementById("chatMessage").value;
-      const payload = { message: msg, user_id: currentUser.id, chat_id: currentChat };
-
-      const { error } = await client.from("messages").insert(payload);
-      if (error) {
-        document.getElementById("chatStatus").textContent = "❌ Fehler: " + error.message;
-      } else {
-        document.getElementById("chatMessage").value = "";
-      }
-    });
-
-    // Nachrichten laden
-    async function loadMessages() {
-      const { data, error } = await client
-        .from("messages")
-        .select("id, time, message, user:user_id(username)")
-        .eq("chat_id", currentChat)
-        .order("time", { ascending: true });
-
-      if (error) {
-        console.error(error);
-        return;
-      }
-
-      const container = document.getElementById("messages");
-      container.innerHTML = "";
-
-      data.forEach(row => {
-        const time = new Date(row.time).toLocaleString("de-DE", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit"
-        });
-        const line = document.createElement("div");
-        line.textContent = `${time} ${row.user.username}: ${row.message}`;
-        container.appendChild(line);
-      });
-    }
-
-    // Realtime
-    function subscribeToMessages() {
-      client
-        .channel('chat-room')
-        .on(
-          'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'messages' },
-          (payload) => {
-            if (payload.new.chat_id === currentChat) {
-              loadMessages();
-            }
-          }
-        )
-        .subscribe();
-    }
-
-    // Sidebar Chat-Wechsel
-    document.getElementById("chatList").addEventListener("click", (e) => {
-      if (e.target.tagName === "LI") {
-        currentChat = e.target.dataset.chat;
+// ---------------- REALTIME ----------------
+function subscribeToMessages() {
+  client
+    .channel('chat-room-' + currentChat)
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_id=eq.${currentChat}` },
+      (payload) => {
         loadMessages();
       }
-    });
+    )
+    .subscribe();
+}
 
-    // Popup öffnen
-    document.getElementById("createChatBtn").addEventListener("click", () => {
-      document.getElementById("createChatPopup").style.display = "block";
-    });
+// ---------------- NACHRICHT SENDEN ----------------
+document.getElementById("chatForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!currentUser || !currentChat) {
+    document.getElementById("chatStatus").textContent = "❌ Bitte zuerst einloggen und Chat auswählen.";
+    return;
+  }
 
-    // User-Felder hinzufügen
-    document.getElementById("addUserBtn").addEventListener("click", (e) => {
-      e.preventDefault();
-      const div = document.createElement("div");
-      div.innerHTML = `<input type="text" class="usernameInput" placeholder="Username eingeben">`;
-      document.getElementById("userInputs").appendChild(div);
-    });
+  const msg = document.getElementById("chatMessage").value;
+  const payload = { message: msg, user_id: currentUser.id, chat_id: currentChat };
 
-    // Chat erstellen
-    document.getElementById("confirmCreateChatBtn").addEventListener("click", async () => {
-      const usernames = Array.from(document.querySelectorAll(".usernameInput"))
-                         .map(input => input.value)
-                         .filter(v => v.trim() !== "");
+  const { error } = await client.from("messages").insert(payload);
+  if (error) {
+    document.getElementById("chatStatus").textContent = "❌ Fehler: " + error.message;
+  } else {
+    document.getElementById("chatMessage").value = "";
+  }
+});
 
-      if (usernames.length === 0) {
-        alert("Bitte mindestens einen User eingeben!");
-        return;
-      }
+// ---------------- CREATE CHAT POPUP ----------------
+document.getElementById("createChatBtn").addEventListener("click", () => {
+  document.getElementById("createChatPopup").style.display = "block";
+});
 
-      const chatName = usernames.join(", ");
+document.getElementById("addUserBtn").addEventListener("click", (e) => {
+  e.preventDefault();
+  const div = document.createElement("div");
+  div.innerHTML = `<input type="text" class="usernameInput" placeholder="Username eingeben">`;
+  document.getElementById("userInputs").appendChild(div);
+});
 
-      const { data, error } = await client.from("chats").insert({ name: chatName, users: usernames });
-      if (error) {
-        console.error(error);
-        alert("Fehler beim Erstellen des Chats");
-        return;
-      }
+document.getElementById("confirmCreateChatBtn").addEventListener("click", async () => {
+  const usernames = Array.from(document.querySelectorAll(".usernameInput"))
+    .map(input => input.value)
+    .filter(v => v.trim() !== "");
 
-      const li = document.createElement("li");
-      li.textContent = chatName;
-      li.dataset.chat = data[0].id;
-      document.getElementById("chatList").appendChild(li);
+  if (usernames.length === 0) {
+    alert("Bitte mindestens einen User eingeben!");
+    return;
+  }
 
-      document.getElementById("createChatPopup").style.display = "none";
-    });
+  const chatName = usernames.join(", ");
+
+  const { data, error } = await client.from("chats").insert({ name: chatName, users: usernames }).select();
+  if (error) {
+    console.error(error);
+    alert("Fehler beim Erstellen des Chats");
+    return;
+  }
+
+  // Sidebar neu laden
+  loadChatList();
+
+  // Popup schließen
+  document.getElementById("createChatPopup").style.display = "none";
+});
 </script>
 </body>
 </html>
