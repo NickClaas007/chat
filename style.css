@@ -1,0 +1,205 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Login-Bereich */
+#loginblock {
+  display: block;
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+#loginblock h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#loginForm input {
+  width: 95%;
+  padding: 8px;
+  margin: 6px 0;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+#loginForm button {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff; /* Blau */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+#loginForm button:hover {
+  background-color: #0056b3;
+}
+
+#loginStatus {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* Hauptcontainer für Chat + Sidebar */
+#main {
+  display: none;
+  height: 100%;
+  gap: 20px;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* Chatbereich */
+#chatblock {
+  flex: 3;
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  overflow-y: auto;
+}
+
+/* Sidebar */
+#sidebar {
+  display: none;
+  flex: 1;
+  background: #eee;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  overflow-y: auto;
+}
+
+#sidebar h1 {
+  margin-top: 0;
+}
+
+#chatList {
+  list-style: none;
+  padding: 0;
+}
+
+#chatList li {
+  padding: 8px;
+  margin: 4px 0;
+  background: #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#chatList li:hover {
+  background: #bbb;
+}
+
+/* Create Chat Button */
+#createChatBtn {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff; /* gleicher Stil wie Login */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+#createChatBtn:hover {
+  background-color: #0056b3;
+}
+
+/* Nachrichtenbereich */
+#messagesSection h2 {
+  margin-top: 0;
+}
+
+#messages div {
+  padding: 5px 0;
+  border-bottom: 1px solid #ccc;
+  font-size: 14px;
+}
+
+/* Chat-Eingabe */
+#chatForm {
+  position: fixed;
+  bottom: 10px;
+  width: 70%;
+  display: flex;
+  gap: 10px;
+}
+
+#chatMessage {
+  flex: 3;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #aaa;
+}
+
+#chatForm button {
+  flex: 1;
+  padding: 8px;
+  background-color: #0056b3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+#chatForm button:hover {
+  background-color: #003d80;
+}
+
+/* Popup für neuen Chat */
+.popup {
+  position: fixed;
+  top: 30%;
+  left: 40%;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 20px;
+  z-index: 1000;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.popup h2 {
+  margin-top: 0;
+}
+
+.popup input {
+  width: 95%;
+  padding: 8px;
+  margin: 6px 0;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.popup button {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff; /* gleicher Stil wie Login */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.popup button:hover {
+  background-color: #0056b3;
+}
