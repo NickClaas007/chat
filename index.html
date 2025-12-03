@@ -64,7 +64,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
-let currentChat = null; // wird nach Auswahl gesetzt
+let currentChat = null;
 
 // ---------------- LOGIN ----------------
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
@@ -96,7 +96,6 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   document.getElementById("sidebar").style.display = "block";
   document.getElementById("main").style.display = "flex";
 
-  // Sidebar-Chats laden
   loadChatList();
 });
 
@@ -110,7 +109,7 @@ async function loadChatList() {
   data.forEach(chat => {
     const li = document.createElement("li");
     li.textContent = chat.name;
-    li.dataset.chat = chat.id;   // echte ID
+    li.dataset.chat = chat.id;   // echte UUID
     list.appendChild(li);
   });
 }
@@ -121,6 +120,10 @@ document.getElementById("chatList").addEventListener("click", (e) => {
     currentChat = e.target.dataset.chat;
     loadMessages();
     subscribeToMessages();
+
+    // aktive Klasse setzen
+    document.querySelectorAll("#chatList li").forEach(li => li.classList.remove("activeChat"));
+    e.target.classList.add("activeChat");
   }
 });
 
