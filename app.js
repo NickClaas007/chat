@@ -11,16 +11,14 @@ let subscription = null;
 // ---------------- LOGIN ----------------
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const username = document.getElementById("loginUser").value.trim();
-  const password = document.getElementById("loginPass").value.trim();
+  const username = document.getElementById("loginUser").value;
+  const password = document.getElementById("loginPass").value;
 
-  // Case-insensitive Suche nach Username
-const { data, error } = await client
-  .from("user")
-  .select("*")
-  .eq("username", username.trim())   // exakter Vergleich
-  .maybeSingle();                    // gibt null zurück, wenn nichts gefunden
-
+  const { data, error } = await client
+    .from("user")
+    .select("*")
+    .eq("username", username)
+    .single();
 
   if (error || !data) {
     document.getElementById("loginStatus").textContent = "❌ Benutzer nicht gefunden.";
@@ -34,16 +32,14 @@ const { data, error } = await client
 
   currentUser = data;
   localStorage.setItem("user_id", data.id);
-
-  document.getElementById("loginStatus").textContent = "✅ Eingeloggt als " + data.username;
+  document.getElementById("loginStatus").textContent = "✅ Eingeloggt als " + username;
   document.getElementById("loginblock").style.display = "none";
-  document.getElementById("chatblock").style.display = "flex";
+  document.getElementById("chatblock").style.display = "block";
   document.getElementById("sidebar").style.display = "block";
   document.getElementById("main").style.display = "flex";
 
   loadChatList();
 });
-
 // ---------------- CHATLISTE LADEN ----------------
 async function loadChatList() {
   const { data, error } = await client
