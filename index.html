@@ -1,1 +1,66 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Supabase Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Login Block -->
+  <div id="loginblock">
+    <h1>Login</h1>
+    <form id="loginForm">
+      <input type="text" id="loginUser" placeholder="Username" required>
+      <input type="password" id="loginPass" placeholder="Passwort" required>
+      <button type="submit">Einloggen</button>
+    </form>
+    <div id="loginStatus"></div>
+  </div>
+
+  <!-- Main Container -->
+  <div id="main">
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <h1>Chats</h1>
+      <ul id="chatList"></ul>
+      <button id="createChatBtn">➕ Neuen Chat erstellen</button>
+    </div>
+
+    <!-- Chatblock -->
+    <div id="chatblock">
+      <div id="messagesSection">
+        <h2>Nachrichten</h2>
+        <div id="messages"></div>
+      </div>
+
+      <!-- Chat Eingabe -->
+      <form id="chatForm">
+        <input type="text" id="chatMessage" placeholder="Nachricht eingeben..." required>
+        <button type="submit">Senden</button>
+      </form>
+      <div id="chatStatus"></div>
+    </div>
+  </div>
+
+  <!-- Popup für neuen Chat -->
+  <div id="createChatPopup" class="popup" style="display:none;">
+    <h2>Neuen Chat erstellen</h2>
+    <div id="userInputs">
+      <input type="text" class="usernameInput" placeholder="Username eingeben">
+    </div>
+    <button id="addUserBtn">➕ Weiteren User hinzufügen</button>
+    <button id="confirmCreateChatBtn">Chat erstellen</button>
+  </div>
+
+  <!-- JS -->
+  <script src="app.js"></script>
+</body>
+</html>
 
