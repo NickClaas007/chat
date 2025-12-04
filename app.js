@@ -12,20 +12,6 @@ async function setCurrentUser(userId) {
   await client.rpc('set_current_user', { user_id: userId });
 }
 
-// ---------------- AUTO-LOGIN NACH RELOAD ----------------
-window.addEventListener("DOMContentLoaded", async () => {
-  const userId = localStorage.getItem("user_id");
-  if (!userId) return;
-
-  const { data, error } = await client.from("users").select("*").eq("id", userId).single();
-  if (data) {
-    currentUser = data;
-    await setCurrentUser(currentUser.id); // RLS korrekt setzen
-    showChatUI();
-    loadChatList();
-  }
-});
-
 // ---------------- LOGIN ----------------
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
