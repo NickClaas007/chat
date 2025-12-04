@@ -181,21 +181,7 @@ document.getElementById("confirmCreateChatBtn").addEventListener("click", async 
 });
 
 // ---------------- AUTO-LOGIN NACH RELOAD ----------------
-window.addEventListener("DOMContentLoaded", async () => {
-  const storedUserId = localStorage.getItem("user_id");
-  if (!storedUserId) return;
 
-  const { data, error } = await client.from("users").select("*").eq("id", storedUserId).single();
-  if (error || !data) return;
-
-  currentUser = data;
-  document.getElementById("loginblock").style.display = "none";
-  document.getElementById("chatblock").style.display = "flex";
-  document.getElementById("sidebar").style.display = "block";
-  document.getElementById("main").style.display = "flex";
-
-  loadChatList();
-});
 // ---------------- AUTO-REFRESH alle 500ms ----------------
 setInterval(() => {
   if (currentChat) {
