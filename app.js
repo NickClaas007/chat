@@ -2,11 +2,23 @@
 const SUPABASE_URL = "https://cnognczziitfzvnzcdmv.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNub2duY3p6aWl0Znp2bnpjZG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NjA5NzQsImV4cCI6MjA3OTMzNjk3NH0.RCbo1DPG7sHTeKoos3YXkN6-7E7C-irTJIK1eAKeTNI";
 
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let currentChat = null;
-let subscription = null;
+
+// ---------------- AUTO-LOGIN NACH RELOAD ----------------
+window.addEventListener("DOMContentLoaded", async () => {
+  const userId = localStorage.getItem("user_id");
+  if (!userId) return;
+
+  const { data, error } = await client.from("users").select("*").eq("id", userId).single();
+  if (data) {
+    currentUser = data;
+    showChatUI();
+    loadChatList();
+  }
+});
 
 // ---------------- LOGIN ----------------
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
@@ -32,27 +44,42 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 
   currentUser = data;
   localStorage.setItem("user_id", data.id);
-  document.getElementById("loginStatus").textContent = "✅ Eingeloggt als " + username;
+  showChatUI();
+  loadChatList();
+});
+
+function showChatUI() {
+  document.getElementById("loginStatus").textContent = "✅ Eingeloggt als " + currentUser.username;
   document.getElementById("loginblock").style.display = "none";
   document.getElementById("chatblock").style.display = "block";
   document.getElementById("sidebar").style.display = "block";
   document.getElementById("main").style.display = "flex";
+}
 
-  loadChatList();
-});
 // ---------------- CHATLISTE LADEN ----------------
 async function loadChatList() {
+  if (!currentUser) return;
+
+  // Nur Chats laden, in denen der User Mitglied ist oder Admin ist
   const { data, error } = await client
-    .from("chats")
-    .select("id, name")
-    .order("name");
+    .from("members")
+    .select("chat_id, chats(name)")
+    .eq("user_id", currentUser.id)
+    .order("chat_id");
 
   if (error) { console.error(error); return; }
+
+  // Admin sieht alle Chats
+  let visibleChats = data.map(m => ({ id: m.chat_id, name: m.chats.name }));
+  if (currentUser.is_admin) {
+    const { data: allChats } = await client.from("chats").select("id, name");
+    visibleChats = allChats;
+  }
 
   const list = document.getElementById("chatList");
   list.innerHTML = "";
 
-  data.forEach(chat => {
+  visibleChats.forEach(chat => {
     const li = document.createElement("li");
     li.textContent = chat.name;
     li.dataset.chat = chat.id;
@@ -65,7 +92,6 @@ document.getElementById("chatList").addEventListener("click", (e) => {
   if (e.target.tagName === "LI") {
     currentChat = e.target.dataset.chat;
     loadMessages();
-    subscribeToMessages(currentChat);
 
     document.querySelectorAll("#chatList li").forEach(li => li.classList.remove("activeChat"));
     e.target.classList.add("activeChat");
@@ -75,11 +101,12 @@ document.getElementById("chatList").addEventListener("click", (e) => {
 // ---------------- NACHRICHTEN LADEN ----------------
 async function loadMessages() {
   if (!currentChat) return;
+
   const { data, error } = await client
     .from("messages")
-    .select("id, time, message, user:user_id(username)")
+    .select("id, created_at, content, user:user_id(username)")
     .eq("chat_id", currentChat)
-    .order("time", { ascending: true });
+    .order("created_at", { ascending: true });
 
   if (error) { console.error(error); return; }
 
@@ -91,18 +118,15 @@ async function loadMessages() {
 
 // ---------------- Nachricht ins DOM ----------------
 function appendMessage(row) {
-  const time = new Date(row.time).toLocaleString("de-DE", {
+  const time = new Date(row.created_at).toLocaleString("de-DE", {
     day: "2-digit", month: "2-digit", year: "numeric",
     hour: "2-digit", minute: "2-digit"
   });
   const username = row.user?.username ?? "User";
   const line = document.createElement("div");
-  line.textContent = `${time} ${username}: ${row.message}`;
+  line.textContent = `${time} ${username}: ${row.content}`;
   document.getElementById("messages").appendChild(line);
 }
-
-// ---------------- REALTIME ----------------
-
 
 // ---------------- NACHRICHT SENDEN ----------------
 document.getElementById("chatForm").addEventListener("submit", async (e) => {
@@ -116,7 +140,7 @@ document.getElementById("chatForm").addEventListener("submit", async (e) => {
   const msg = msgInput.value.trim();
   if (!msg) return;
 
-  const payload = { message: msg, user_id: currentUser.id, chat_id: currentChat };
+  const payload = { content: msg, user_id: currentUser.id, chat_id: currentChat };
   const { error } = await client.from("messages").insert(payload);
 
   if (error) {
@@ -124,8 +148,8 @@ document.getElementById("chatForm").addEventListener("submit", async (e) => {
   } else {
     msgInput.value = "";
     document.getElementById("chatStatus").textContent = "";
+    loadMessages();
   }
-  loadChatList()
 });
 
 // ---------------- CREATE CHAT POPUP ----------------
@@ -165,7 +189,7 @@ document.getElementById("confirmCreateChatBtn").addEventListener("click", async 
 
   const newChatId = chatData[0].id;
 
-  // Admin (id=1) automatisch hinzufügen
+  // Admin automatisch hinzufügen
   await client.from("members").insert({ chat_id: newChatId, user_id: 1 });
 
   // Alle angegebenen User hinzufügen
@@ -180,11 +204,9 @@ document.getElementById("confirmCreateChatBtn").addEventListener("click", async 
   document.getElementById("createChatPopup").style.display = "none";
 });
 
-// ---------------- AUTO-LOGIN NACH RELOAD ----------------
-
 // ---------------- AUTO-REFRESH alle 500ms ----------------
 setInterval(() => {
   if (currentChat) {
     loadMessages();
   }
-}, 500); // 500ms = 2x pro Sekunde
+}, 500);
