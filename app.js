@@ -1,6 +1,6 @@
 // === Supabase Konfiguration ===
 const SUPABASE_URL = "https://cnognczziitfzvnzcdmv.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzYSIsInJlZiI6ImNub2duY3p6aWl0Znp2bnpjZG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NjA5NzQsImV4cCI6MjA3OTMzNjk3NH0.RCbo1DPG7sHTeKoos3YXkN6-7E7C-irTJIK1eAKeTNI";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzYSIsInJlZiI6ImNub2duY3p6aWl0Znp2cnpjZG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NjA5NzQsImV4cCI6MjA3OTMzNjk3NH0.RCbo1DPG7sHTeKoos3YXkN6-7E7C-irTJIK1eAKeTNI";
 
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -15,13 +15,15 @@ async function setCurrentUser(userId) {
 // ---------------- LOGIN ----------------
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const username = document.getElementById("loginUser").value;
+  const username = document.getElementById("loginUser").value.trim();
   const password = document.getElementById("loginPass").value;
+
+  console.log("Login-Versuch für User:", username);
 
   const { data, error } = await client
     .from("users")
     .select("*")
-    .eq("username", username)
+    .ilike("username", username) // case-insensitive
     .single();
 
   if (error || !data) {
@@ -35,7 +37,6 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   }
 
   currentUser = data;
-  localStorage.setItem("user_id", data.id);
   await setCurrentUser(currentUser.id); // RLS korrekt setzen
   showChatUI();
   loadChatList();
@@ -53,7 +54,6 @@ function showChatUI() {
 async function loadChatList() {
   if (!currentUser) return;
 
-  // Alle Chats, in denen der User Mitglied ist
   const { data, error } = await client
     .from("members")
     .select("chat_id, chats(name)")
@@ -64,7 +64,7 @@ async function loadChatList() {
 
   let visibleChats = data.map(m => ({ id: m.chat_id, name: m.chats.name }));
 
-  // Admin sieht zusätzlich alle Chats
+  // Admin sieht alle Chats
   if (currentUser.is_admin) {
     const { data: allChats } = await client.from("chats").select("id, name");
     visibleChats = allChats;
