@@ -170,7 +170,7 @@ document.getElementById("confirmCreateChatBtn").addEventListener("click", async 
 
   // Alle angegebenen User hinzufügen
   for (const uname of usernames) {
-    const { data: u } = await client.from("user").select("id").ilike("username", uname).single();
+    const { data: u } = await client.from("users").select("id").ilike("username", uname).single();
     if (u?.id) {
       await client.from("members").insert({ chat_id: newChatId, user_id: u.id });
     }
@@ -185,7 +185,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   const storedUserId = localStorage.getItem("user_id");
   if (!storedUserId) return;
 
-  const { data, error } = await client.from("user").select("*").eq("id", storedUserId).single();
+  const { data, error } = await client.from("users").select("*").eq("id", storedUserId).single();
   if (error || !data) return;
 
   currentUser = data;
