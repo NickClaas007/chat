@@ -5,330 +5,224 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chat Anwendung</title>
 
-<!-- Modernes Styling -->
 <style>
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 0;
-    background: #f0f2f5;
-  }
-
-  .container {
-    max-width: 1000px;
-    margin: auto;
-    padding: 20px;
-  }
-
-  /* Login */
-  #loginSection {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-  }
-
-  #loginSection input {
-    width: 300px;
-    padding: 12px;
-    margin: 8px 0;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-  }
-
-  #loginSection button {
-    width: 320px;
-    padding: 12px;
-    margin-top: 12px;
-    border: none;
-    border-radius: 5px;
-    background-color: #4caf50;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-  }
-
-  #loginSection button:hover {
-    background-color: #45a049;
-  }
-
-  .error {
-    color: red;
-    margin-top: 10px;
-  }
-
-  /* Chat */
-  #chatSection {
-    display: none;
-  }
-
-  .chat-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .chat-header h2 {
-    margin: 0;
-  }
-
-  .chat-room {
-    background: white;
-    border-radius: 8px;
-    padding: 15px;
-    margin-top: 20px;
-  }
-
-  .messages {
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    height: 250px;
-    overflow-y: auto;
-    padding: 10px;
-    background: #f9f9f9;
-  }
-
-  .messages p {
-    margin: 5px 0;
-  }
-
-  .message-input {
-    display: flex;
-    margin-top: 10px;
-  }
-
-  .message-input textarea {
-    flex: 1;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    resize: none;
-  }
-
-  .message-input button {
-    padding: 10px 15px;
-    margin-left: 10px;
-    border-radius: 5px;
-    border: none;
-    background-color: #2196f3;
-    color: white;
-    cursor: pointer;
-  }
-
-  .message-input button:hover {
-    background-color: #1976d2;
-  }
-
-  #privateChatList {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .private-chat {
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px;
-  }
-
-  .private-chat h3 {
-    margin: 0 0 10px 0;
-  }
+  body { font-family: Arial; background:#f0f2f5; margin:0; padding:0; }
+  #loginSection, #chatSection { max-width:900px; margin:auto; padding:20px; }
+  #loginSection { display:flex; flex-direction:column; align-items:center; height:100vh; justify-content:center; }
+  input, textarea { width:100%; padding:10px; margin:5px 0; border-radius:5px; border:1px solid #ccc; }
+  button { padding:10px 15px; border:none; border-radius:5px; cursor:pointer; background:#4caf50; color:white; }
+  button:hover { background:#45a049; }
+  .chat-room { background:white; padding:15px; border-radius:8px; margin-top:20px; }
+  .messages { height:250px; overflow-y:auto; padding:10px; background:#f9f9f9; border-radius:5px; border:1px solid #ddd; }
+  .message-input { display:flex; gap:10px; margin-top:10px; }
+  #privateChatList .chat-room { margin-top:10px; }
 </style>
 
-<!-- Supabase JS -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-<div class="container">
 
-  <!-- LOGIN -->
-  <div id="loginSection">
-    <h2>Login</h2>
-    <input type="text" id="username" placeholder="Benutzername">
-    <input type="password" id="password" placeholder="Passwort">
-    <button id="loginBtn">Login</button>
-    <p class="error" id="loginError"></p>
-  </div>
+<!-- LOGIN -->
+<div id="loginSection">
+  <h2>Login</h2>
+  <input id="username" placeholder="Benutzername">
+  <input id="password" type="password" placeholder="Passwort">
+  <button id="loginBtn">Login</button>
+  <p id="loginError" style="color:red"></p>
+</div>
 
-  <!-- CHAT -->
-  <div id="chatSection">
-    <div class="chat-header">
-      <h2>Chat Anwendung</h2>
-      <button id="logoutBtn">Logout</button>
-    </div>
+<!-- CHAT -->
+<div id="chatSection" style="display:none;">
+  <h2>Chat Anwendung</h2>
+  <button id="logoutBtn">Logout</button>
 
-    <!-- Info-Chat -->
-    <div class="chat-room" id="infoChat">
-      <h3>Info-Chat</h3>
-      <div class="messages" id="infoMessages"></div>
-      <div class="message-input">
-        <textarea id="infoInput" placeholder="Nur Admin kann schreiben"></textarea>
-        <button id="infoSend">Senden</button>
-      </div>
-    </div>
-
-    <!-- Fragen-Chat -->
-    <div class="chat-room" id="fragenChat">
-      <h3>Fragen-Chat</h3>
-      <div class="messages" id="fragenMessages"></div>
-      <div class="message-input">
-        <textarea id="fragenInput" placeholder="Nachricht schreiben..."></textarea>
-        <button id="fragenSend">Senden</button>
-      </div>
-    </div>
-
-    <!-- Private Chats -->
-    <div class="chat-room" id="privateChats">
-      <h3>Private Chats</h3>
-      <div id="privateChatList"></div>
+  <!-- INFO CHAT -->
+  <div class="chat-room">
+    <h3>Info-Chat</h3>
+    <div class="messages" id="infoMessages"></div>
+    <div class="message-input">
+      <textarea id="infoInput" placeholder="Nur Admin darf schreiben"></textarea>
+      <button id="infoSend">Senden</button>
     </div>
   </div>
+
+  <!-- FRAGEN CHAT -->
+  <div class="chat-room">
+    <h3>Fragen-Chat</h3>
+    <div class="messages" id="fragenMessages"></div>
+    <div class="message-input">
+      <textarea id="fragenInput" placeholder="Nachricht schreiben..."></textarea>
+      <button id="fragenSend">Senden</button>
+    </div>
+  </div>
+
+  <!-- PRIVATE CHATS -->
+  <h3>Private Chats</h3>
+  <div id="privateChatList"></div>
 </div>
 
 <script>
-  // Supabase Setup
-  const SUPABASE_URL = "https://cnognczziitfzvnzcdmv.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzYSIsInJlZiI6ImNub2duY3p6aWl0Znp2cnpjZG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3NjA5NzQsImV4cCI6MjA3OTMzNjk3NH0.RCbo1DPG7sHTeKoos3YXkN6-7E7C-irTJIK1eAKeTNI";
-  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL = "DEINE_URL_HIER";
+const SUPABASE_KEY = "DEIN_ANON_KEY_HIER";
 
-  let currentUser = null;
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // LOGIN
-  document.getElementById('loginBtn').addEventListener('click', async () => {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+let currentUser = null;
 
-    // Einfaches Login über Benutzer-Tabelle (in Produktion immer hashed!)
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('username', username)
-      .eq('password', password)
-      .single();
+/* -------------------- LOGIN -------------------- */
+document.getElementById("loginBtn").onclick = async () => {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
 
-    if (error || !data) {
-      document.getElementById('loginError').innerText = "Login fehlgeschlagen!";
-    } else {
-      currentUser = data;
-      document.getElementById('loginSection').style.display = 'none';
-      document.getElementById('chatSection').style.display = 'block';
-      initChat();
-    }
+  const { data, error } = await client
+    .from("users")
+    .select("*")
+    .eq("username", username)
+    .eq("password_hash", password)
+    .single();
+
+  if (!data) {
+    document.getElementById("loginError").textContent = "Login fehlgeschlagen!";
+    return;
+  }
+
+  currentUser = data;
+
+  document.getElementById("loginSection").style.display = "none";
+  document.getElementById("chatSection").style.display = "block";
+
+  initChats();
+};
+
+/* -------------------- LOGOUT -------------------- */
+document.getElementById("logoutBtn").onclick = () => location.reload();
+
+
+/* -------------------- CHAT SYSTEM -------------------- */
+
+async function initChats() {
+  loadMessages(1, "infoMessages");
+  loadMessages(2, "fragenMessages");
+
+  subscribeRealtime(1, "infoMessages");
+  subscribeRealtime(2, "fragenMessages");
+
+  loadPrivateChats();
+
+  if (!currentUser.is_admin) {
+    document.getElementById("infoInput").disabled = true;
+    document.getElementById("infoSend").disabled = true;
+  }
+
+  document.getElementById("infoSend").onclick = () => sendMessage(1, "infoInput");
+  document.getElementById("fragenSend").onclick = () => sendMessage(2, "fragenInput");
+}
+
+
+/* ----- Nachrichten laden ----- */
+async function loadMessages(chatId, containerId) {
+  const { data } = await client
+    .from("messages")
+    .select("content, created_at, user:users(username)")
+    .eq("chat_id", chatId)
+    .order("created_at");
+
+  const box = document.getElementById(containerId);
+  box.innerHTML = "";
+  data?.forEach(m => {
+    box.innerHTML += `<p><b>${m.user.username}</b>: ${m.content}</p>`;
   });
 
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    location.reload();
+  box.scrollTop = box.scrollHeight;
+}
+
+
+/* ----- Nachricht senden ----- */
+async function sendMessage(chatId, inputId) {
+  const text = document.getElementById(inputId).value;
+  if (!text) return;
+
+  await client.from("messages").insert({
+    chat_id: chatId,
+    user_id: currentUser.id,
+    content: text
   });
 
-  // CHAT LOGIK
-  async function initChat() {
-    loadMessages('info', 'infoMessages');
-    loadMessages('fragen', 'fragenMessages');
-    loadPrivateChats();
+  document.getElementById(inputId).value = "";
+}
 
-    // Admin Rechte für Info-Chat
-    if(currentUser.role !== 'admin') {
-      document.getElementById('infoInput').disabled = true;
-      document.getElementById('infoSend').disabled = true;
-    }
+
+/* ----- Realtime Chat ----- */
+function subscribeRealtime(chatId, containerId) {
+  client
+    .channel("chat_" + chatId)
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "messages", filter: `chat_id=eq.${chatId}` },
+      payload => loadMessages(chatId, containerId)
+    )
+    .subscribe();
+}
+
+
+/* -------------------- PRIVATE CHATS -------------------- */
+async function loadPrivateChats() {
+  const { data } = await client
+    .from("members")
+    .select("chat_id, chats(name)")
+    .eq("user_id", currentUser.id)
+    .neq("chat_id", 1)     // nicht Info
+    .neq("chat_id", 2);    // nicht Fragen
+
+  const list = document.getElementById("privateChatList");
+  list.innerHTML = "";
+
+  for (const chat of data) {
+    const div = document.createElement("div");
+    div.className = "chat-room";
+
+    div.innerHTML = `
+      <h4>${chat.chats.name}</h4>
+      <div class="messages" id="private_${chat.chat_id}"></div>
+      <div class="message-input">
+        <textarea id="input_${chat.chat_id}"></textarea>
+        <button onclick="sendPrivate(${chat.chat_id})">Senden</button>
+      </div>
+    `;
+
+    list.appendChild(div);
+
+    loadPrivateMessages(chat.chat_id);
+    subscribeRealtime(chat.chat_id, "private_" + chat.chat_id);
   }
+}
 
-  async function getRoomId(type) {
-    const { data } = await supabase.from('chat_rooms').select('id').eq('type', type).single();
-    return data.id;
-  }
+async function loadPrivateMessages(chatId) {
+  const { data } = await client
+    .from("messages")
+    .select("content, user:users(username)")
+    .eq("chat_id", chatId)
+    .order("created_at");
 
-  async function loadMessages(type, containerId) {
-    const room_id = await getRoomId(type);
-    const { data } = await supabase
-      .from('messages')
-      .select('id, content, sender_id, created_at, users(username)')
-      .eq('room_id', room_id)
-      .order('created_at', { ascending: true })
-      .join('users', 'users.id', 'messages.sender_id');
+  const box = document.getElementById("private_" + chatId);
+  box.innerHTML = "";
+  data?.forEach(m => box.innerHTML += `<p><b>${m.user.username}</b>: ${m.content}</p>`);
+}
 
-    const container = document.getElementById(containerId);
-    container.innerHTML = '';
-    if(data) {
-      data.forEach(msg => {
-        container.innerHTML += `<p><strong>${msg.users.username}:</strong> ${msg.content}</p>`;
-      });
-      container.scrollTop = container.scrollHeight;
-    }
-  }
+async function sendPrivate(chatId) {
+  const input = document.getElementById("input_" + chatId);
+  const text = input.value;
 
-  async function sendMessage(type, inputId) {
-    const content = document.getElementById(inputId).value;
-    if(!content) return;
+  if (!text) return;
 
-    const room_id = await getRoomId(type);
-    await supabase.from('messages').insert({ room_id, sender_id: currentUser.id, content });
-    document.getElementById(inputId).value = '';
-    loadMessages(type, type+'Messages');
-  }
+  await client.from("messages").insert({
+    chat_id: chatId,
+    user_id: currentUser.id,
+    content: text
+  });
 
-  // Event Listener für Chat Buttons
-  document.getElementById('infoSend').addEventListener('click', () => sendMessage('info','infoInput'));
-  document.getElementById('fragenSend').addEventListener('click', () => sendMessage('fragen','fragenInput'));
-
-  // PRIVATE CHATS
-  async function loadPrivateChats() {
-    const { data } = await supabase
-      .from('private_chat_members')
-      .select('room_id, chat_rooms(name)')
-      .eq('user_id', currentUser.id)
-      .join('chat_rooms', 'chat_rooms.id', 'private_chat_members.room_id');
-
-    const container = document.getElementById('privateChatList');
-    container.innerHTML = '';
-    if(data) {
-      for(let chat of data) {
-        const div = document.createElement('div');
-        div.className = 'private-chat';
-        div.innerHTML = `
-          <h3>${chat.chat_rooms.name}</h3>
-          <div class="messages" id="private-${chat.room_id}"></div>
-          <div class="message-input">
-            <textarea id="input-${chat.room_id}" placeholder="Nachricht schreiben..."></textarea>
-            <button onclick="sendPrivateMessage('${chat.room_id}')">Senden</button>
-          </div>
-        `;
-        container.appendChild(div);
-        loadPrivateMessages(chat.room_id);
-      }
-    }
-  }
-
-  async function loadPrivateMessages(room_id) {
-    const { data } = await supabase
-      .from('messages')
-      .select('content, sender_id, users(username)')
-      .eq('room_id', room_id)
-      .order('created_at', { ascending: true })
-      .join('users', 'users.id', 'messages.sender_id');
-
-    const container = document.getElementById(`private-${room_id}`);
-    container.innerHTML = '';
-    if(data) {
-      data.forEach(msg => {
-        container.innerHTML += `<p><strong>${msg.users.username}:</strong> ${msg.content}</p>`;
-      });
-      container.scrollTop = container.scrollHeight;
-    }
-  }
-
-  async function sendPrivateMessage(room_id) {
-    const input = document.getElementById(`input-${room_id}`);
-    const content = input.value;
-    if(!content) return;
-
-    await supabase.from('messages').insert({ room_id, sender_id: currentUser.id, content });
-    input.value = '';
-    loadPrivateMessages(room_id);
-  }
+  input.value = "";
+}
 </script>
 
 </body>
